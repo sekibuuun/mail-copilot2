@@ -1,8 +1,27 @@
 import React from 'react';
 import '@pages/options/Options.css';
+import { useForm, SubmitHandler } from 'react-hook-form';
+
+type FormData = {
+  apiKey: string;
+};
 
 const Options: React.FC = () => {
-  return <div className="container">Options</div>;
+  const { register, handleSubmit } = useForm<FormData>();
+  const onSubmit: SubmitHandler<FormData> = data => {
+    localStorage.setItem('apiKey', data.apiKey);
+  };
+
+  return (
+    <div className="options">
+      <h1>APIキー入力画面</h1>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <label htmlFor="apiKey">APIキー</label>
+        <input id="apiKey" {...register('apiKey')} />
+        <button type="submit">保存</button>
+      </form>
+    </div>
+  );
 };
 
 export default Options;

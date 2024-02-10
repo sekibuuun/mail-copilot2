@@ -7,11 +7,17 @@ function App() {
       if (element) {
         console.log('Element was clicked');
         getSubject(element);
-        // GET
-        const output = 'test';
-        // サジェストを表示
-        element.textContent = output;
-        element.style.color = 'gray';
+
+        chrome.storage.sync.get(['key']).then(result => {
+          const apiKey = result.key;
+
+          // ここにGETリクエストを送る処理を書いて
+          const output = 'test' + apiKey;
+
+          // サジェストを表示
+          element.textContent = output;
+          element.style.color = 'gray';
+        });
 
         element.addEventListener('keydown', function (e) {
           if (e.shiftKey && e.key === 'Enter') {

@@ -7,7 +7,7 @@ function App() {
       const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
       if (element) {
         console.log('Element was clicked');
-        postSubject();
+        postSubject(element);
       }
     };
 
@@ -21,7 +21,7 @@ function App() {
   return <div></div>;
 }
 
-function postSubject() {
+function postSubject(element: Element) {
   const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
   const subject = subjectInput.value;
   console.log(subject);
@@ -32,6 +32,7 @@ function postSubject() {
       .get(url)
       .then(response => {
         console.log(response);
+        element.textContent = response.data;
       })
       .catch(error => {
         console.log(error);

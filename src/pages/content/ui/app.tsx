@@ -27,6 +27,9 @@ function postSubject(element: Element) {
   console.log(subject);
 
   const apply = (subject: string) => {
+    if (subject === '') {
+      alert('件名を入力してください');
+    }
     const url = `http://127.0.0.1:3000/mail_copilot/${subject}`;
     axios
       .get(url)
@@ -36,6 +39,12 @@ function postSubject(element: Element) {
       })
       .catch(error => {
         console.log(error);
+        if (error.message === 'Network Error') {
+          alert('サーバーに接続できませんでした');
+        }
+        if (error.message === 'Request failed with status code 500') {
+          alert('APIキーが正しくありません');
+        }
       });
   };
 

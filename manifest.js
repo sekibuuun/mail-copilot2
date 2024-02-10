@@ -24,10 +24,10 @@ const manifest = {
     service_worker: 'src/pages/background/index.js',
     type: 'module',
   },
-  // action: {
-  //   default_popup: 'src/pages/popup/index.html',
-  //   default_icon: 'icon-34.png',
-  // },
+  action: {
+    default_popup: 'src/pages/popup/index.html',
+    default_icon: 'icon-34.png',
+  },
   // chrome_url_overrides: {
   //   newtab: 'src/pages/newtab/index.html',
   // },

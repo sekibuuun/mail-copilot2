@@ -7,7 +7,27 @@ function App() {
       const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
       if (element) {
         console.log('Element was clicked');
-        postSubject(element);
+        // GET
+        const output = postSubject(element);
+        // サジェストを表示
+        element.textContent = output;
+        element.style.color = 'gray';
+
+        element.addEventListener('keydown', function (e) {
+          if (e.shiftKey && e.key === 'Enter') {
+            e.preventDefault();
+            console.log('shift + Enterが押された');
+            // サジェストを決定
+            element.style.color = 'black';
+          }
+          if (e.shiftKey && e.key === 'Backspace') {
+            e.preventDefault();
+            console.log('shift + Backspaceが押された');
+            // サジェストを削除
+            element.textContent = '';
+            element.style.color = 'black';
+          }
+        });
       }
     };
 
@@ -48,9 +68,9 @@ function postSubject(element: Element) {
       });
   };
 
-  apply(subject);
+  const response = apply(subject);
 
-  return '';
+  return response;
 }
 
 export default App;

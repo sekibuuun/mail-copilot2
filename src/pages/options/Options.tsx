@@ -9,7 +9,9 @@ type FormData = {
 const Options: React.FC = () => {
   const { register, handleSubmit } = useForm<FormData>();
   const onSubmit: SubmitHandler<FormData> = data => {
-    localStorage.setItem('apiKey', data.apiKey);
+    chrome.storage.sync.set({ key: data.apiKey }).then(() => {
+      console.log('apiKeyが保存されました');
+    });
   };
 
   return (

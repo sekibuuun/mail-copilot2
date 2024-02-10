@@ -7,6 +7,27 @@ function App() {
       if (element) {
         console.log('Element was clicked');
         getSubject(element);
+        // GET
+        const output = 'test';
+        // サジェストを表示
+        element.textContent = output;
+        element.style.color = 'gray';
+
+        element.addEventListener('keydown', function (e) {
+          if (e.shiftKey && e.key === 'Enter') {
+            e.preventDefault();
+            console.log('shift + Enterが押された');
+            // サジェストを決定
+            element.style.color = 'black';
+          }
+          if (e.shiftKey && e.key === 'Backspace') {
+            e.preventDefault();
+            console.log('shift + Backspaceが押された');
+            // サジェストを削除
+            element.textContent = '';
+            element.style.color = 'black';
+          }
+        });
       }
     };
 

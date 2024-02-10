@@ -2,41 +2,31 @@ import React, { useEffect } from 'react';
 
 function App() {
   useEffect(() => {
-    const observer = new MutationObserver(mutationsList => {
-      mutationsList.forEach(mutation => {
-        if (mutation.type === 'childList') {
-          const element = document.querySelector('.Am.aiL.Al.editable.LW-avf.tS-tW');
-          if (element) {
-            element.addEventListener('click', () => {
-              console.log('Element was clicked');
-              // ここに関数を書く
-              element.textContent = 'aaa'; // Set the text content to 'aaa'
-              console.log(localStorage.getItem('apiKey'));
-              // optionsにあるものをpopupに移動させ、apikeyが取得できるか確認する
-            });
-          }
-        }
-      });
-      // for (const mutation of mutationsList) {
-      //   if (mutation.type === 'childList') {
-      //     const element = document.querySelector('.Am.aiL.Al.editable.LW-avf.tS-tW');
-      //     if (element) {
-      //       element.addEventListener('click', () => {
-      //         console.log('Element was clicked');
-      //       });
-      //     }
-      //   }
-      // }
-    });
+    const handleClick = event => {
+      const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
+      if (element) {
+        console.log('Element was clicked');
+        getSubject(element);
+      }
+    };
 
-    //  ドキュメントに設定されたパラメータで観察を開始
-    observer.observe(document.body, { childList: true, subtree: true });
+    // ドキュメント全体に対して一度だけイベントリスナーを追加
+    document.addEventListener('click', handleClick);
 
-    //  コンポーネントがアンマウントされたときにオブザーバーを切断
-    return () => observer.disconnect();
+    // コンポーネントがアンマウントされたときにイベントリスナーを削除
+    return () => document.removeEventListener('click', handleClick);
   }, []);
 
   return <div></div>;
+}
+
+function getSubject(element) {
+  const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
+  const subject = subjectInput.value;
+  element.textContent = 'test';
+  console.log(subject);
+
+  return '';
 }
 
 export default App;

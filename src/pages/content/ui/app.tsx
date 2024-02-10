@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 
 function App() {
   useEffect(() => {
@@ -6,7 +7,7 @@ function App() {
       const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
       if (element) {
         console.log('Element was clicked');
-        getSubject(element);
+        postSubject();
       }
     };
 
@@ -20,11 +21,24 @@ function App() {
   return <div></div>;
 }
 
-function getSubject(element) {
+function postSubject() {
   const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
   const subject = subjectInput.value;
-  element.textContent = 'test';
   console.log(subject);
+
+  const apply = (subject: string) => {
+    const url = `http://127.0.0.1:3000/mail_copilot/${subject}`;
+    axios
+      .get(url)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+  apply(subject);
 
   return '';
 }

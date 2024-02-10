@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 
 function App() {
   useEffect(() => {
@@ -6,13 +7,11 @@ function App() {
       const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
       if (element) {
         console.log('Element was clicked');
-        getSubject(element);
-
         chrome.storage.sync.get(['key']).then(result => {
           const apiKey = result.key;
 
           // ここにGETリクエストを送る処理を書いて
-          const output = 'test' + apiKey;
+          const output = postSubject(element, apiKey);
 
           // サジェストを表示
           element.textContent = output;
@@ -47,13 +46,36 @@ function App() {
   return <div></div>;
 }
 
-function getSubject(element) {
+function postSubject(element: Element, apiKey: string) {
   const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
   const subject = subjectInput.value;
-  element.textContent = 'test';
   console.log(subject);
 
-  return '';
+  const apply = (subject: string) => {
+    if (subject === '') {
+      alert('件名を入力してください');
+    }
+    const url = `http://127.0.0.1:3000/mail_copilot/${apiKey}/${subject}`;
+    axios
+      .get(url)
+      .then(response => {
+        console.log(response);
+        element.textContent = response.data;
+      })
+      .catch(error => {
+        console.log(error);
+        if (error.message === 'Network Error') {
+          alert('サーバーに接続できませんでした');
+        }
+        if (error.message === 'Request failed with status code 500') {
+          alert('APIキーが正しくありません');
+        }
+      });
+  };
+
+  const response = apply(subject);
+
+  return response;
 }
 
 export default App;

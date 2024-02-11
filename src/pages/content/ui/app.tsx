@@ -3,20 +3,13 @@ import axios from 'axios';
 
 function App() {
   useEffect(() => {
-    const handleClick = event => {
+    const handleClick = async event => {
       const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
       if (element) {
         console.log('Element was clicked');
-        chrome.storage.sync.get(['key']).then(result => {
-          const apiKey = result.key;
+        const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
 
-          // ここにGETリクエストを送る処理を書いて
-          const output = postSubject(element, apiKey);
-
-          // サジェストを表示
-          element.textContent = output;
-          element.style.color = 'gray';
-        });
+        getSuggest(element, apiKey);
 
         element.addEventListener('keydown', function (e) {
           if (e.shiftKey && e.key === 'Enter') {
@@ -24,6 +17,7 @@ function App() {
             console.log('shift + Enterが押された');
             // サジェストを決定
             element.style.color = 'black';
+            document.removeEventListener('click', handleClick);
           }
           if (e.shiftKey && e.key === 'Backspace') {
             e.preventDefault();
@@ -31,6 +25,8 @@ function App() {
             // サジェストを削除
             element.textContent = '';
             element.style.color = 'black';
+
+            getSuggest(element, apiKey);
           }
         });
       }
@@ -44,6 +40,17 @@ function App() {
   }, []);
 
   return <div></div>;
+}
+
+function getSuggest(element, apiKey) {
+  // ここにGETリクエストを送る処理を書いて
+  const output = postSubject(element, apiKey);
+
+  // サジェストを表示
+  element.textContent = output;
+  element.style.color = 'gray';
+
+  return element;
 }
 
 function postSubject(element: Element, apiKey: string) {
@@ -60,7 +67,16 @@ function postSubject(element: Element, apiKey: string) {
       .get(url)
       .then(response => {
         console.log(response);
-        element.textContent = response.data;
+        const lines = response.data.split('\n');
+        lines.forEach(line => {
+          const newDiv = document.createElement('div');
+          newDiv.textContent = line;
+          element.appendChild(newDiv);
+          // 空行を削除
+          if (line === '') {
+            newDiv.remove();
+          }
+        });
       })
       .catch(error => {
         console.log(error);

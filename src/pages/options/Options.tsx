@@ -10,7 +10,7 @@ const Options: React.FC = () => {
   const { register, handleSubmit } = useForm<FormData>();
   const onSubmit: SubmitHandler<FormData> = data => {
     chrome.storage.sync.set({ key: data.apiKey }).then(() => {
-      console.log('apiKeyが保存されました');
+      alert('APIキーが保存されました');
     });
   };
 

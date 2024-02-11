@@ -24,6 +24,7 @@ function App() {
             console.log('shift + Enterが押された');
             // サジェストを決定
             element.style.color = 'black';
+            document.removeEventListener('click', handleClick);
           }
           if (e.shiftKey && e.key === 'Backspace') {
             e.preventDefault();

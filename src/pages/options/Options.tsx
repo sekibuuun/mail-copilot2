@@ -15,13 +15,19 @@ const Options: React.FC = () => {
   };
 
   return (
-    <div className="options">
-      <h1>APIキー入力画面</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <label htmlFor="apiKey">APIキー</label>
-        <input id="apiKey" {...register('apiKey')} />
-        <button type="submit">保存</button>
-      </form>
+    <div className="options-container">
+      <div className="options-content">
+        <h1 className="options-title">Mail Copilot</h1>
+        <form onSubmit={handleSubmit(onSubmit)} className="options-form">
+          <label htmlFor="apiKey" className="options-label">
+            APIキー
+          </label>
+          <input id="apiKey" type="password" {...register('apiKey')} className="options-input" />
+          <button type="submit" className="options-button">
+            保存
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

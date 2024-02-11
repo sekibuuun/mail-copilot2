@@ -2,12 +2,14 @@ import React from 'react';
 import './Popup.css';
 
 const Popup = () => {
+  const chrome_id = chrome.runtime.id;
+  const url = `chrome-extension://${chrome_id}/src/pages/options/index.html`;
   return (
     <div className="popup">
       <h1>使い方</h1>
       <ol>
         <li>
-          <a href="chrome-extension://ieemabahhjiffamhbjkpapdmpgigajei/src/pages/options/index.html" target="_blank">
+          <a href={url} target="_blank" rel="noreferrer">
             こちら
           </a>
           からOpenAIのAPIキーを設定

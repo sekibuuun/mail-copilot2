@@ -60,7 +60,16 @@ function postSubject(element: Element, apiKey: string) {
       .get(url)
       .then(response => {
         console.log(response);
-        element.textContent = response.data;
+        const lines = response.data.split('\n');
+        lines.forEach(line => {
+          const newDiv = document.createElement('div');
+          newDiv.textContent = line;
+          element.appendChild(newDiv);
+          // 空行を削除
+          if (line === '') {
+            newDiv.remove();
+          }
+        });
       })
       .catch(error => {
         console.log(error);

@@ -2,96 +2,125 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
-  const [judgeMode, setJudgeMode] = useState<number>(2); // 1: 本文生成, 2: 件名生成
+  const [judgeMode, setJudgeMode] = useState<number>(1);
+
+  const textMode = () => {
+    chrome.storage.sync.set({ mode: 1 }); // 本文
+    chrome.storage.sync.get(['mode'], result => {
+      setJudgeMode(result.mode);
+    });
+    console.log('本文を生成');
+  };
+
+  const subjectMode = () => {
+    chrome.storage.sync.set({ mode: 2 }); // 件名
+    chrome.storage.sync.get(['mode'], result => {
+      setJudgeMode(result.mode);
+    });
+    console.log('件名を生成');
+  };
 
   useEffect(() => {
-    const textHandleClick = async event => {
-      const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
-      if (element) {
-        setJudgeMode(2);
-        console.log('本文がクリックされた');
-        const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
-        const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
-        const subject = subjectInput.value;
+    // 本文を生成
+    if (judgeMode === 1) {
+      const textHandleClick = async event => {
+        const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
+        if (element) {
+          chrome.storage.sync.get(['mode'], result => {
+            setJudgeMode(result.mode);
+          });
+          console.log('本文がクリックされた');
+          const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
+          const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
+          const subject = subjectInput.value;
 
-        getSuggest(element, apiKey, judgeMode, subject);
+          getSuggest(element, apiKey, judgeMode, subject);
 
-        element.addEventListener('keydown', function (e) {
-          if (e.shiftKey && e.key === 'Enter') {
-            e.preventDefault();
-            console.log('shift + Enterが押された');
-            // サジェストを決定
-            element.style.color = 'black';
-            document.removeEventListener('click', textHandleClick);
-          }
-          if (e.shiftKey && e.key === 'Backspace') {
-            e.preventDefault();
-            console.log('shift + Backspaceが押された');
-            // サジェストを削除
-            element.textContent = '';
-            element.style.color = 'black';
+          element.addEventListener('keydown', function (e) {
+            if (e.shiftKey && e.key === 'Enter') {
+              e.preventDefault();
+              console.log('shift + Enterが押された');
+              // サジェストを決定
+              element.style.color = 'black';
+              document.removeEventListener('click', textHandleClick);
+            }
+            if (e.shiftKey && e.key === 'Backspace') {
+              e.preventDefault();
+              console.log('shift + Backspaceが押された');
+              // サジェストを削除
+              element.textContent = '';
+              element.style.color = 'black';
 
-            getSuggest(element, apiKey, judgeMode, subject);
-          }
-        });
-      }
-    };
+              getSuggest(element, apiKey, judgeMode, subject);
+            }
+          });
+        }
+      };
+      // ドキュメント全体に対して一度だけイベントリスナーを追加
+      document.addEventListener('click', textHandleClick);
 
-    // ドキュメント全体に対して一度だけイベントリスナーを追加
-    document.addEventListener('click', textHandleClick);
-
-    // コンポーネントがアンマウントされたときにイベントリスナーを削除
-    return () => document.removeEventListener('click', textHandleClick);
+      // コンポーネントがアンマウントされたときにイベントリスナーを削除
+      return () => document.removeEventListener('click', textHandleClick);
+    }
   }, [judgeMode]);
 
   useEffect(() => {
-    const subjectHandleClick = async event => {
-      const element = event.target.closest('.aoT');
-      if (element) {
-        setJudgeMode(1);
-        const textInput = document.querySelectorAll('.Am.aiL.Al.editable.LW-avf.tS-tW');
-        const text = textInput[0].textContent;
-        console.log('本文：' + text);
-        console.log('件名がクリックされた');
+    if (judgeMode === 2) {
+      // 件名を生成
+      const subjectHandleClick = async event => {
+        const element = event.target.closest('.aoT');
+        if (element) {
+          chrome.storage.sync.get(['mode'], result => {
+            setJudgeMode(result.mode);
+          });
+          const textInput = document.querySelectorAll('.Am.aiL.Al.editable.LW-avf.tS-tW');
+          const text = textInput[0].textContent;
+          console.log('本文：' + text);
+          console.log('件名がクリックされた');
 
-        const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
+          const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
 
-        getSuggest(element, apiKey, judgeMode, text);
+          getSuggest(element, apiKey, judgeMode, text);
 
-        element.addEventListener('keydown', function (e) {
-          if (e.shiftKey && e.key === 'Enter') {
-            e.preventDefault();
-            console.log('shift + Enterが押された');
-            // サジェストを決定
-            element.style.color = 'black';
-            document.removeEventListener('click', subjectHandleClick);
-          }
-          if (e.shiftKey && e.key === 'Backspace') {
-            e.preventDefault();
-            console.log('shift + Backspaceが押された');
-            // サジェストを削除
-            element.textContent = '';
-            element.style.color = 'black';
+          element.addEventListener('keydown', function (e) {
+            if (e.shiftKey && e.key === 'Enter') {
+              e.preventDefault();
+              console.log('shift + Enterが押された');
+              // サジェストを決定
+              element.style.color = 'black';
+              document.removeEventListener('click', subjectHandleClick);
+            }
+            if (e.shiftKey && e.key === 'Backspace') {
+              e.preventDefault();
+              console.log('shift + Backspaceが押された');
+              // サジェストを削除
+              element.textContent = '';
+              element.style.color = 'black';
 
-            getSuggest(element, apiKey, judgeMode, text);
-          }
-        });
-      }
-    };
+              getSuggest(element, apiKey, judgeMode, text);
+            }
+          });
+        }
+      };
 
-    // ドキュメント全体に対して一度だけイベントリスナーを追加
-    document.addEventListener('click', subjectHandleClick);
+      // ドキュメント全体に対して一度だけイベントリスナーを追加
+      document.addEventListener('click', subjectHandleClick);
 
-    // コンポーネントがアンマウントされたときにイベントリスナーを削除
-    return () => document.removeEventListener('click', subjectHandleClick);
+      // コンポーネントがアンマウントされたときにイベントリスナーを削除
+      return () => document.removeEventListener('click', subjectHandleClick);
+    }
   }, [judgeMode]);
 
-  return <div></div>;
+  return (
+    <div>
+      <h3>生成モード選択</h3>
+      <button onClick={() => subjectMode()}>件名</button>
+      <button onClick={() => textMode()}>本文</button>
+    </div>
+  );
 }
 
 function getSuggest(element, apiKey, judgeMode, input) {
-  console.log(judgeMode);
-
   if (judgeMode === 1) {
     const text = postSubject(element, apiKey, judgeMode, input);
     element.textContent = text;
@@ -145,21 +174,6 @@ function postSubject(element: Element, apiKey: string, judgeMode: number, subjec
 }
 
 function postText(apiKey: string, judgeMode: number, text: string) {
-  // const getTextRecursive = node => {
-  //   let text = '';
-  //   const processNode = n => {
-  //     for (let child of n.childNodes) {
-  //       if (child.nodeType === Node.TEXT_NODE) {
-  //         text += child.textContent;
-  //       } else if (child.nodeType === Node.ELEMENT_NODE) {
-  //         processNode(child);
-  //       }
-  //     }
-  //   };
-  //   processNode(node);
-  //   return text;
-  // };
-
   const applyText = (text: string, judgeMode: number) => {
     if (text === '') {
       alert('本文を入力してください');

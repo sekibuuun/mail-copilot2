@@ -1,24 +1,26 @@
 import React, { useState, useEffect, CSSProperties } from 'react';
 import axios from 'axios';
 
+type mode = 'text' | 'subject';
+
 const App: React.FC = () => {
-  const [mode, setMode] = useState<number>(1);
+  const [mode, setMode] = useState<mode>('text');
 
   const textMode = () => {
-    chrome.storage.sync.set({ mode: 1 }); // 本文
+    chrome.storage.sync.set({ mode: 'text' }); // 本文
     chrome.storage.sync.get(['mode'], result => {
       setMode(result.mode);
     });
   };
 
   const subjectMode = () => {
-    chrome.storage.sync.set({ mode: 2 }); // 件名
+    chrome.storage.sync.set({ mode: 'subject' }); // 件名
     chrome.storage.sync.get(['mode'], result => {
       setMode(result.mode);
     });
   };
   useEffect(() => {
-    if (mode === 1) {
+    if (mode === 'text') {
       const handleTextClick = async (event: MouseEvent) => {
         const textElement = event.target as HTMLElement;
         const element = textElement.closest('.Am.aiL.Al.editable.LW-avf.tS-tW') as HTMLElement;
@@ -55,7 +57,7 @@ const App: React.FC = () => {
   }, [mode]);
 
   useEffect(() => {
-    if (mode === 2) {
+    if (mode === 'subject') {
       const handleSubjectClick = async (event: MouseEvent) => {
         const subjectElement = event.target as HTMLElement;
         const element = subjectElement.closest('.aoT') as HTMLInputElement;
@@ -97,11 +99,11 @@ const App: React.FC = () => {
       <h3>生成モード選択</h3>
       <div style={styles.modeWrapper}>
         <label>
-          <input type="radio" value="本文" checked={mode === 1} onChange={textMode} />
+          <input type="radio" value="本文" checked={mode === 'text'} onChange={textMode} />
           本文
         </label>
         <label>
-          <input type="radio" value="件名" checked={mode === 2} onChange={subjectMode} />
+          <input type="radio" value="件名" checked={mode === 'subject'} onChange={subjectMode} />
           件名
         </label>
       </div>
@@ -124,10 +126,10 @@ const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-function getSuggest(element: HTMLElement, apiKey: string, mode: number, input: string) {
-  if (mode === 1) {
+function getSuggest(element: HTMLElement, apiKey: string, mode: mode, input: string) {
+  if (mode === 'text') {
     postSubject(element, apiKey, mode, input);
-  } else if (mode === 2) {
+  } else if (mode === 'subject') {
     postText(apiKey, mode, input, element);
   }
 
@@ -136,7 +138,7 @@ function getSuggest(element: HTMLElement, apiKey: string, mode: number, input: s
   return element;
 }
 
-function postSubject(element: HTMLElement, apiKey: string, mode: number, subject: string) {
+function postSubject(element: HTMLElement, apiKey: string, mode: mode, subject: string) {
   if (subject === '') {
     alert('件名を入力してください');
     return;
@@ -166,7 +168,7 @@ function postSubject(element: HTMLElement, apiKey: string, mode: number, subject
     });
 }
 
-function postText(apiKey: string, mode: number, text: string, element: HTMLElement) {
+function postText(apiKey: string, mode: mode, text: string, element: HTMLElement) {
   if (text === '') {
     alert('本文を入力してください');
     return;

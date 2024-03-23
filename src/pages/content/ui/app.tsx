@@ -93,8 +93,9 @@ function App() {
             if (e.shiftKey && e.key === 'Backspace') {
               e.preventDefault();
               console.log('shift + Backspaceが押された');
+
               // サジェストを削除
-              element.textContent = '';
+              element.value = '';
               element.style.color = 'black';
 
               getSuggest(element, apiKey, judgeMode, text);

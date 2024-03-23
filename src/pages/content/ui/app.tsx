@@ -1,97 +1,197 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, CSSProperties } from 'react';
 import axios from 'axios';
 
-function App() {
+const App: React.FC = () => {
+  const [mode, setMode] = useState<number>(1);
+
+  const textMode = () => {
+    chrome.storage.sync.set({ mode: 1 }); // 本文
+    chrome.storage.sync.get(['mode'], result => {
+      setMode(result.mode);
+    });
+  };
+
+  const subjectMode = () => {
+    chrome.storage.sync.set({ mode: 2 }); // 件名
+    chrome.storage.sync.get(['mode'], result => {
+      setMode(result.mode);
+    });
+  };
   useEffect(() => {
-    const handleClick = async event => {
-      const element = event.target.closest('.Am.aiL.Al.editable.LW-avf.tS-tW');
-      if (element) {
-        console.log('Element was clicked');
+    if (mode === 1) {
+      const handleTextClick = async (event: MouseEvent) => {
+        const textElement = event.target as HTMLElement;
+        const element = textElement.closest('.Am.aiL.Al.editable.LW-avf.tS-tW') as HTMLElement;
+        if (!element) return;
+
         const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
+        const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
+        const subject = subjectInput.value;
 
-        getSuggest(element, apiKey);
+        getSuggest(element, apiKey, mode, subject);
 
-        element.addEventListener('keydown', function (e) {
+        const handleKeyDown = (e: KeyboardEvent) => {
           if (e.shiftKey && e.key === 'Enter') {
             e.preventDefault();
-            console.log('shift + Enterが押された');
-            // サジェストを決定
             element.style.color = 'black';
-            document.removeEventListener('click', handleClick);
-          }
-          if (e.shiftKey && e.key === 'Backspace') {
+            document.removeEventListener('click', handleTextClick);
+          } else if (e.shiftKey && e.key === 'Backspace') {
             e.preventDefault();
-            console.log('shift + Backspaceが押された');
-            // サジェストを削除
             element.textContent = '';
             element.style.color = 'black';
-
-            getSuggest(element, apiKey);
+            getSuggest(element, apiKey, mode, subject);
           }
-        });
-      }
-    };
+        };
 
-    // ドキュメント全体に対して一度だけイベントリスナーを追加
-    document.addEventListener('click', handleClick);
+        element.addEventListener('keydown', handleKeyDown);
+      };
 
-    // コンポーネントがアンマウントされたときにイベントリスナーを削除
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
+      document.addEventListener('click', handleTextClick);
 
-  return <div></div>;
-}
+      return () => {
+        document.removeEventListener('click', handleTextClick);
+      };
+    }
+  }, [mode]);
 
-function getSuggest(element, apiKey) {
-  // ここにGETリクエストを送る処理を書いて
-  const output = postSubject(element, apiKey);
+  useEffect(() => {
+    if (mode === 2) {
+      const handleSubjectClick = async (event: MouseEvent) => {
+        const subjectElement = event.target as HTMLElement;
+        const element = subjectElement.closest('.aoT') as HTMLInputElement;
+        if (!element) return;
 
-  // サジェストを表示
-  element.textContent = output;
+        const textInput = document.querySelectorAll('.Am.aiL.Al.editable.LW-avf.tS-tW');
+        const text = textInput[0].textContent;
+
+        const apiKey = await chrome.storage.sync.get(['key']).then(result => result.key);
+
+        getSuggest(element, apiKey, mode, text);
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.shiftKey && e.key === 'Enter') {
+            e.preventDefault();
+            element.style.color = 'black';
+            document.removeEventListener('click', handleSubjectClick);
+          } else if (e.shiftKey && e.key === 'Backspace') {
+            e.preventDefault();
+            element.value = '';
+            element.style.color = 'black';
+            getSuggest(element, apiKey, mode, text);
+          }
+        };
+
+        element.addEventListener('keydown', handleKeyDown);
+      };
+
+      document.addEventListener('click', handleSubjectClick);
+
+      return () => {
+        document.removeEventListener('click', handleSubjectClick);
+      };
+    }
+  }, [mode]);
+
+  return (
+    <div style={styles.selectMode}>
+      <h3>生成モード選択</h3>
+      <div style={styles.modeWrapper}>
+        <label>
+          <input type="radio" value="本文" checked={mode === 1} onChange={textMode} />
+          本文
+        </label>
+        <label>
+          <input type="radio" value="件名" checked={mode === 2} onChange={subjectMode} />
+          件名
+        </label>
+      </div>
+    </div>
+  );
+};
+
+const styles: { [key: string]: CSSProperties } = {
+  selectMode: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginLeft: '10px',
+    gap: '10px',
+  },
+  modeWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: '5px',
+  },
+};
+
+function getSuggest(element: HTMLElement, apiKey: string, mode: number, input: string) {
+  if (mode === 1) {
+    postSubject(element, apiKey, mode, input);
+  } else if (mode === 2) {
+    postText(apiKey, mode, input, element);
+  }
+
   element.style.color = 'gray';
 
   return element;
 }
 
-function postSubject(element: Element, apiKey: string) {
-  const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
-  const subject = subjectInput.value;
-  console.log(subject);
+function postSubject(element: HTMLElement, apiKey: string, mode: number, subject: string) {
+  if (subject === '') {
+    alert('件名を入力してください');
+    return;
+  }
 
-  const apply = (subject: string) => {
-    if (subject === '') {
-      alert('件名を入力してください');
-    }
-    const url = `http://127.0.0.1:3000/mail_copilot/${apiKey}/${subject}`;
-    axios
-      .get(url)
-      .then(response => {
-        console.log(response);
-        const lines = response.data.split('\n');
-        lines.forEach(line => {
+  const url = `http://127.0.0.1:3000/mail_copilot/${apiKey}/${subject}/${mode}`;
+
+  axios
+    .get(url)
+    .then(response => {
+      const lines = response.data.split('\n');
+      element.textContent = '';
+      lines.forEach(line => {
+        if (line.trim() !== '') {
           const newDiv = document.createElement('div');
           newDiv.textContent = line;
           element.appendChild(newDiv);
-          // 空行を削除
-          if (line === '') {
-            newDiv.remove();
-          }
-        });
-      })
-      .catch(error => {
-        console.log(error);
-        if (error.message === 'Network Error') {
-          alert('サーバーに接続できませんでした');
-        }
-        if (error.message === 'Request failed with status code 500') {
-          alert('APIキーが正しくありません');
         }
       });
-  };
+    })
+    .catch(error => {
+      if (error.message === 'Network Error') {
+        alert('サーバーに接続できませんでした');
+      } else if (error.message === 'Request failed with status code 500') {
+        alert('APIキーが正しくありません');
+      }
+    });
+}
 
-  const response = apply(subject);
+function postText(apiKey: string, mode: number, text: string, element: HTMLElement) {
+  if (text === '') {
+    alert('本文を入力してください');
+    return;
+  }
 
-  return response;
+  const url = `http://127.0.0.1:3000/mail_copilot/${apiKey}/${text}/${mode}`;
+
+  axios
+    .get(url)
+    .then(response => {
+      const subjectInput = document.getElementsByName('subjectbox')[0] as HTMLInputElement;
+      const lines = response.data.split('\n');
+      const subjectLine = lines.find(line => line.trim() !== '');
+      if (subjectLine && subjectInput) {
+        subjectInput.value = subjectLine;
+      }
+      element.textContent = subjectLine;
+    })
+    .catch(error => {
+      if (error.message === 'Network Error') {
+        alert('サーバーに接続できませんでした');
+      } else if (error.message === 'Request failed with status code 500') {
+        alert('APIキーが正しくありません');
+      }
+    });
 }
 
 export default App;
